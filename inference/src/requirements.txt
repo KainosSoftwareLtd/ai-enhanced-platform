@@ -1,0 +1,9 @@
+optimum[onnxruntime]
+langchain
+transformers
+langchain-experimental
+langchain-openai
+guardrails-ai
+fastapi
+uvicorn
+requests

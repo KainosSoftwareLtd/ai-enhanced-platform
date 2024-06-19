@@ -1,0 +1,14 @@
+site_name: AEP Docs
+nav:
+  - Introduction: index.md
+  - Getting Started: 
+      - Local: getting-started-local.md
+      - Azure: getting-started-azure.md
+  - Hosting Guide: hosting-guide.md
+  - Usage: usage.md
+  - Design: design.md
+  - Versions: version.md
+  - Feedback:
+      - Overview: feedback.md
+theme:
+  name: material

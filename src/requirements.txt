@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+requests
+pytest
+openai
+python-dotenv
+azure-identity
+azure-keyvault-secrets
+starlette
+tiktoken
+prometheus_fastapi_instrumentator
+pydantic-core
+pytest
+markdown

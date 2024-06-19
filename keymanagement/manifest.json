@@ -1,0 +1,14 @@
+{
+    "manifest": {
+        "users": [
+            {
+                "name": "Example",
+		"uuid": null,
+                "project": "Example Project",
+                "contact": "example.person@kainos.com",
+                "keygendate": null,
+		"regenkey": true
+            }		
+        ]
+    }
+}

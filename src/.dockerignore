@@ -1,0 +1,9 @@
+# Ignore python build artefacts
+__pycache__
+.env
+.gitignore
+.DS_Store
+*.md
+logs/
+Makefile
+database/

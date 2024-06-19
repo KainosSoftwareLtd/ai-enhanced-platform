@@ -1,0 +1,176 @@
+parameters:
+  - name: x_api_consumer
+    type: string
+  - name: x_api_key
+    type: string
+  - name: api_host
+    type: string
+    default: 'https://app-aep-api-s-latest-uksouth.azurewebsites.net'
+  - name: working_directory
+    displayName: 'The working directory must include trailing slash'
+    type: string
+    default: '$(System.DefaultWorkingDirectory)/'
+
+
+stages:
+  - stage: AEPSummary
+    condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
+    jobs:
+     - job: AEPSummary
+       steps: 
+        - checkout: 'self'
+          submodules: 'true'
+          fetchDepth: 0  # Set fetch depth to 0
+          persistCredentials: true
+        - task: Bash@3
+          displayName: 'Generate diff as text file'
+          inputs:
+            targetType: 'inline'
+            script: |
+              echo "Checking out main/master branch..."
+              git checkout $(System.PullRequest.TargetBranchName)
+              echo "Pulling latest changes from remote..."
+              git pull origin $(System.PullRequest.TargetBranchName)
+              echo "Switching back to PR branch..."
+              git checkout "$(System.PullRequest.SourceCommitId)"
+              echo "Showing diff..."
+              git diff $(System.PullRequest.TargetBranchName)...$(System.PullRequest.SourceCommitId) > ${{ parameters.working_directory }}diff.txt
+        - task: Bash@3
+          displayName: 'Generate markdown file'
+          env: 
+            WORKING_DIRECTORY: ${{ parameters.working_directory }}
+            API_HOST: ${{ parameters.api_host }}
+            X_API_CONSUMER: ${{ parameters.x_api_consumer }}
+            X_API_KEY: ${{ parameters.x_api_key }}
+          inputs:
+            targetType: 'inline'
+            script: |
+              #!/bin/bash
+              # Get the environment variables
+              API_HOST=$(printenv API_HOST)
+              WORKING_DIRECTORY=$(printenv WORKING_DIRECTORY)
+              X_API_CONSUMER=$(printenv X_API_CONSUMER)
+              X_API_KEY=$(printenv X_API_KEY)
+              DIFF_FILE="diff.txt"
+              RESPONSE_MD_FILE="response.md"
+
+              # Check if the diff file exists
+              if [ ! -f "${WORKING_DIRECTORY}${DIFF_FILE}" ]; then
+                  echo "File ${WORKING_DIRECTORY}${DIFF_FILE} not found."
+                  exit 1
+              fi
+
+              # Generate the pull request summary prompt
+              file_contents=$(cat "${WORKING_DIRECTORY}${DIFF_FILE}")
+              json_body=$(jq -n --arg pt "pullrequest-summary" --arg p "$file_contents" '{prompt_type: $pt, prompt: $p}')
+
+              # Send the file contents to the API
+              response=$(curl -s -i -X POST "${API_HOST}/predefined" \
+                  -H "Content-Type: application/json" \
+                  -H "X-API-CONSUMER: ${X_API_CONSUMER}" \
+                  -H "X-API-KEY: ${X_API_KEY}" \
+                  -d "$json_body")
+
+              # Get the response code
+              response_code=$(echo "$response" | awk -F' ' '/HTTP\/1.1/{print $2}' | head -n 1)
+              
+              # Check if the response was successful and save the response to a file
+              if [ "$response_code" -eq 200 ]; then
+                  echo "File contents sent successfully."
+                  # Remove headers
+                  response_body=$(echo "$response" | tail -n +2)
+                  # Remove more headers
+                  response_body=$(echo "$response_body" | sed '/^date: /Id' | sed '/^server: /Id' | sed '/^content-length: /Id' | sed '/^content-type: /Id')
+                  # remove trailing and leading quotes
+                  response_body=$(echo "$response_body" | sed 's/^"\(.*\)"$/\1/')
+                  # remove the initial markdown code block ident if it exists
+                  response_body=$(echo "$response_body" | sed 's/```markdown//')
+                  # remove the last code block ident
+                  response_body=$(echo "$response_body" | sed 's/```//')
+                  
+                  # Write to file
+                  echo -e "$response_body" > "${WORKING_DIRECTORY}${RESPONSE_MD_FILE}"
+              else
+                  echo "Error sending file contents: $response_code"
+                  exit 1
+              fi
+
+              # Check if the response was saved successfully
+              if [ $? -eq 0 ]; then
+                  echo "Response saved as response.md"
+              else
+                  echo "Error writing to file in ${WORKING_DIRECTORY}."
+                  exit 1
+              fi
+
+        - task: Bash@3
+          displayName: 'Get the PR description'
+          inputs:
+            targetType: 'inline'
+            script: |
+              # Set the API URL
+              ADO_API=$(echo "$(System.CollectionUri)$(System.TeamProject)/_apis/git/repositories/$(Build.Repository.ID)/pullRequests/$(System.PullRequest.PullRequestId)?api-version=7.1-preview.1" | sed -e 's/ /%20/g')
+
+              # Send the request
+              CURRENT_DESCRIPTION=$(curl --location $ADO_API \
+              --header "Content-Type: application/json" \
+              --header "Authorization: Bearer $SYSTEM_ACCESSTOKEN" \
+              --verbose)
+
+              # Extract the description from the response
+              CURRENT_DESCRIPTION=$(echo -E $CURRENT_DESCRIPTION | jq -r '.description')
+
+              # Write the description to a file for later use
+              echo "$CURRENT_DESCRIPTION" > "${{ parameters.working_directory }}current_description.md"
+          env:
+            SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+
+        - task: Bash@3
+          displayName: 'Generate the PR description'
+          inputs:
+            targetType: 'inline'
+            script: |
+              # Check to see whether AEP SUMMARY already exists in the CURRENT_DESCRIPTION and remove it plus every line after it
+              DESCRIPTION=$(<${{ parameters.working_directory }}current_description.md)
+
+              # Get the GENAI_DESCRIPTION
+              GENAI_DESCRIPTION=$(<${{ parameters.working_directory }}response.md)
+
+              # Check to see whether AEP SUMMARY already exists in the CURRENT_DESCRIPTION and remove it plus every line after it
+              if [[ $DESCRIPTION == *'## AEP SUMMARY🤖'* ]]; then
+                  DESCRIPTION=$(echo "${DESCRIPTION%%'## 🤖AEP SUMMARY🤖'*}")
+              fi
+
+              # Add the new GENAI_SUMMARY to the CURRENT_DESCRIPTION
+              DESCRIPTION=$(echo -E "${DESCRIPTION}\n## 🤖AEP SUMMARY🤖\n${GENAI_DESCRIPTION}")
+
+              # Write the description to a json object for {'description': 'new description'}
+              DESCRIPTION=$(jq -n --arg d "$DESCRIPTION" '{description: $d}')
+
+              # Remove the escape characters
+              DESCRIPTION=$(echo "${DESCRIPTION}" | sed 's/\\\\/\\/g')
+
+              # Write the description to a file for later use
+              echo "$DESCRIPTION" > "${{ parameters.working_directory }}description.md"
+          env:
+            SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+
+        - task: Bash@3
+          displayName: 'Update the PR description'
+          inputs:
+            targetType: 'inline'
+            script: |
+              # Set the API URL
+              ADO_API=$(echo "$(System.CollectionUri)$(System.TeamProject)/_apis/git/repositories/$(Build.Repository.ID)/pullrequests/$(System.PullRequest.PullRequestId)?api-version=7.1-preview.1" | sed -e 's/ /%20/g')
+              # Get the PR description
+              PR_DESCRIPTION=$(<${{ parameters.working_directory }}description.md)
+
+              # Send the request
+              curl --location --request PATCH $ADO_API \
+              --header "Content-Type: application/json" \
+              --header "Accept: application/json" \
+              --header "Authorization: Bearer $SYSTEM_ACCESSTOKEN" \
+              --data "$PR_DESCRIPTION" \
+              --verbose 
+          env:
+            SYSTEM_ACCESSTOKEN: $(System.AccessToken)

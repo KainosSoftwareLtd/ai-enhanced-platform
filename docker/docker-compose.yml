@@ -1,0 +1,17 @@
+version: '3'
+services:
+  ai-enhanced-platform:
+    image: ai-enhanced-platform
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./logs:/app/logs
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - SYSTEM_API_KEY=${SYSTEM_API_KEY}
+      - AZURE_VAULT_ID=${AZURE_VAULT_ID}
+      - OPENAI_API_TYPE=${OPENAI_API_TYPE}
+      - OPENAI_MODEL=${OPENAI_MODEL}
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
+      - AZURE_CS_ENDPOINT=${AZURE_CS_ENDPOINT}
+      - AZURE_CS_KEY=${AZURE_CS_KEY}

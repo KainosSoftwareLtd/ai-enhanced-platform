@@ -1,0 +1,125 @@
+diff --git a/src/helpers/__init__.py b/src/helpers/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/src/main.py b/src/main.py
+index c9ec49b..1b76550 100644
+--- a/src/main.py
++++ b/src/main.py
+@@ -1,3 +1,8 @@
++import os
++from dotenv import load_dotenv 
++
++load_dotenv()
++
+ from contextlib import asynccontextmanager
+ from uuid import uuid1, UUID
+ from fastapi import FastAPI, HTTPException, Request
+@@ -45,14 +50,12 @@ app.middleware('http')(authenticate)
+ # Instrument application with Prometheus metrics
+ metrics.begin_instrumentation(app)
+ 
+-
+-
+ # GET - API Root
+ @app.get("/")
+ def hello(request: Request):
+     event_logger.info(f"Request ID: API Root Called")
+     if config.debug_on:
+-        inspect_headers(request)
++        inspect_headers(request, NoQuery())
+     try:
+         prompt_list = retrieve_prompts()
+         return prompt_list
+diff --git a/src/tests/__init__.py b/src/tests/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/src/tests/test_main.py b/src/tests/test_main.py
+new file mode 100644
+index 0000000..8cb8ab6
+--- /dev/null
++++ b/src/tests/test_main.py
+@@ -0,0 +1,66 @@
++import os
++import pytest
++from fastapi.testclient import TestClient
++from dotenv import load_dotenv
++from main import app
++
++load_dotenv()
++
++
++class TestMain:
++    def setup_class(self):
++        self.client = TestClient(app)
++        self.headers_auth = {
++            "X-API-CONSUMER": "system",
++            "X-API-KEY": "system"
++        }
++        self.headers_noauth = {
++            "X-API-CONSUMER": "system",
++            "X-API-KEY": "wrong_key"
++        }
++
++    # test that the root endpoint returns 200 when authenticated
++    def test_read_root_authenticated(self):
++        response = self.client.get("/", headers=self.headers_auth)
++        assert response.status_code == 200
++
++    # test that the root endpoint returns 401 when not authenticated
++    def test_read_root_unauthenticated(self):
++        response = self.client.get("/", headers=self.headers_noauth)
++        assert response.status_code == 401
++
++    # test that the predefined endpoint returns 200 when authenticated
++    def test_pr_review_authenticated(self):
++        response = self.client.post("/predefined", json={
++            "prompt_type": "pullrequest-review",
++            "prompt": "test"
++        }, headers=self.headers_auth)
++        assert response.status_code == 200
++
++    # test that the pr review endpoint returns a 401 when not authenticated
++    def test_pr_review_unauthenticated(self):
++        response = self.client.post("/predefined", json={
++            "prompt_type": "pullrequest-review",
++            "prompt": "test"
++        }, headers=self.headers_noauth)
++        assert response.status_code == 401
++
++    def test_pr_review_with_examples_authenticated(self):
++        response = self.client.post("/predefined", json={
++            "prompt_type": "pullrequest-review-with-examples",
++            "prompt": "test",
++            "examples": ["example1", "example2"]
++        }, headers=self.headers_auth)
++        assert response.status_code == 200
++
++    # test that the package vulnerabilities endpoint returns a 401 when not authenticated
++    def test_package_vul_authenticated(self):
++        response = self.client.post("/predefined", json={
++            "prompt_type": "package-vulnerabilities",
++            "prompt": "test"
++        }, headers=self.headers_auth)
++        assert response.status_code == 200
++
++
++if __name__ == "__main__":
++    pytest.main()
+\ No newline at end of file
+diff --git a/src/tests/tests.py b/src/tests/tests.py
+deleted file mode 100644
+index dbf59bd..0000000
+--- a/src/tests/tests.py
++++ /dev/null
+@@ -1,11 +0,0 @@
+-import requests
+-
+-def test_vul_check():
+-    url = "http://127.0.0.1:8000/vulnerability-check?query=test"
+-    response = requests.get(url)
+-    assert response.status_code == 200
+-
+-def test_info_check():
+-    url = "http://127.0.0.1:8000/info-check?query=test"
+-    response = requests.get(url)
+-    assert response.status_code == 200
