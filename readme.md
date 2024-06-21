@@ -1,12 +1,10 @@
 # AEP: AI Enhanced Platform
 
-[![aep](https://github.com/KainosSoftwareLtd/ai-enhanced-platform/actions/workflows/run-test-suite.yml/badge.svg)](https://github.com/KainosSoftwareLtd/ai-enhanced-platform/actions/workflows/run-test-suite.yml)
-
 Welcome to AEP, your companion for enhancing your build system with Generative AI workflows. With AEP, you can effortlessly add GenAI enhanced pull requester summarisation, code reviews, and more. 
 
 Request your API key and empower your DevOps journey with AI-driven insights and assistance today. 🚀
 
-Website: [AEP Docs](https://fuzzy-adventure-p8nllom.pages.github.io/)
+Website: [AEP Docs](https://kainossoftwareltd.github.io/ai-enhanced-platform/)
 
 ## Features of AEP
 
