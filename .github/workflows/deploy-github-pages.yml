@@ -1,0 +1,58 @@
+# Work to deploy the mkdocs site to GitHub Pages
+
+name: Build GitHub Pages
+
+# Triggers for the workflow
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+  # Allows the workflow to be manually triggered from the GitHub Actions UI    
+  workflow_dispatch:
+# Required permissions to build the GitHub Pages site
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  # Build the mkdocs site
+  build_mkdocs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.9
+      - run: pip install \
+            mkdocs-material
+      # Build the mkdocs site
+      - run: mkdocs gh-deploy --config-file docs/mkdocs/aep-docs/mkdocs.yml --force
+
+  # Deploy the mkdocs site to GitHub Pages
+  deploy_mkdocs:
+    needs: build_mkdocs
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
