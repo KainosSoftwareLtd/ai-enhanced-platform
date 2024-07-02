@@ -1,50 +1,60 @@
 # AEP: AI Enhanced Platform
 
-Welcome to AEP, your companion for enhancing your build system with Generative AI workflows. With AEP, you can effortlessly add GenAI enhanced pull requester summarisation, code reviews, and more. 
+Welcome to AEP, your comprehensive solution for integrating Generative AI workflows into your build system. Enhance your DevOps processes with AI-driven pull request summarization, code reviews, and more.
 
-Request your API key and empower your DevOps journey with AI-driven insights and assistance today. 🚀
+Get your API key and revolutionize your DevOps journey with AI-powered insights and assistance today. 🚀
 
 Website: [AEP Docs](https://kainossoftwareltd.github.io/ai-enhanced-platform/)
 
 ## Features of AEP
 
-Currently, AEP supports the following features:
+AEP currently offers the following features:
 
-- **AI-Driven Pull Request Summary**: Get a summary of your pull request using AI.
-- **AI-Driven Pull Request Insights**: Get AI-driven insights on DevOps tasks and vulnerabilities.
-- **Custom AI-Driven Prompts**: Tailor prompts to your specific needs using custom system and user prompts for precise model guidance.
+- **AI-Driven Pull Request Summary**: Automatically generate summaries of your pull requests using AI.
+- **AI-Driven Pull Request Insights**: Obtain AI-driven insights on DevOps tasks and identify potential vulnerabilities.
+- **Custom AI-Driven Prompts**: Customize prompts for specific needs using tailored system and user prompts for precise model guidance.
 
 ## Usage
 
-## Authentication
-AEP ensures secure access through flexible authentication mechanisms:
-1. LOCAL AUTHENTICATION: If the API is running locally, you can use the `.env` file to set the 'system' user API key.
-   1. If the X-API-CONSUMER is 'system' then the local API key will be used.
-2. AZURE AUTHENTICATION: If the API is running in Azure, it will use the Azure Key Vault to get the API key.
-   1. If the X-API-CONSUMER is anything other than 'system' then the Azure Key Vault will be used.
-   2. A lookup will be used to get the API key from the Key Vault using the X-API-CONSUMER as the identifier.
+### Authentication
 
-## Endpoints
+AEP provides secure access through flexible authentication mechanisms:
 
-### GET /
-Root endpoint and will return a list of available system prompts with their descriptions.
+1. **Local Authentication**: 
+   - Use the `.env` file to set the 'system' user API key when running the API locally.
+   - If `X-API-CONSUMER` is 'system', the local API key will be used.
 
-### POST /predefined
-Retrieve prompts based on predefined types, providing parameters for customised assessment:
-- `prompt_type`: The name of the predefined prompt to use.
-- `prompt`: The content that you want the model to assess based on the predefined prompt type.
+2. **Azure Authentication**: 
+   - When running the API in Azure, it retrieves the API key from the Azure Key Vault.
+   - If `X-API-CONSUMER` is not 'system', the Azure Key Vault is used, with the `X-API-CONSUMER` acting as the identifier.
 
-### POST /custom
-Tailor prompts to your specific needs using custom system and user prompts for precise model guidance:
-- `system_prompt`: The system prompt is used to orient the model towards a personality or desired output.
-- `user_prompt`: The user prompt should tell the model what it is you want it to do with the prompt.
-- `prompt`: The content that you want the model to assess based on the custom prompt.
-- `compression_enabled`(optional): Compresses the input prompt to reduce the number of tokens. Default is false.
-- `model`(optional): The model you want to use as a string, currently available ["gpt-4-turbo", "gpt-35-turbo"]. Default is 'gpt-35-turbo'.
+### Endpoints
+
+#### GET /
+
+Returns a list of available system prompts with their descriptions.
+
+#### POST /predefined
+
+Retrieve prompts based on predefined types, with parameters for customized assessment:
+- `prompt_type`: The predefined prompt to use.
+- `prompt`: The content for the model to assess based on the predefined prompt type.
+
+#### POST /custom
+
+Customize prompts for specific needs using system and user prompts:
+- `system_prompt`: Directs the model towards a desired output.
+- `user_prompt`: Specifies the desired action for the prompt.
+- `prompt`: The content for the model to assess based on the custom prompt.
+- `compression_enabled` (optional): Compresses the input prompt to reduce token count (default: false).
+- `model` (optional): The model to use, currently available options are ["gpt-4-turbo", "gpt-35-turbo"] (default: 'gpt-35-turbo').
 
 ## Local Development
-### Secrets setup
-To run the API locally, you will need to create a `.env` file in the root of the project with the following content:
+
+### Secrets Setup
+
+Create a `.env` file in the root of the project with the following content:
+
 ```
 OPENAI_API_KEY=<your_openai_api_key>
 SYSTEM_API_KEY=<your_system_api_key>
@@ -52,57 +62,64 @@ AZURE_VAULT_ID=<your_azure_key_vault_id>
 ```
 
 ### Local Setup
-To run the API locally, you can use the following commands:
+
+Install the required dependencies and start the server using the following commands:
 
 #### Requirements
-To install the requirements:
+
+To install the dependencies:
+
 ```
 make build-local
 ```
 
-This installs:
-```
--- fastapi
--- uvicorn
--- requests
--- pytest
--- openai
--- python-dotenv
--- azure-identity
--- azure-keyvault-secrets
--- starlette
--- tiktoken
--- prometheus_fastapi_instrumentator
--- pydantic-core
-```
+Dependencies include:
+- fastapi
+- uvicorn
+- requests
+- pytest
+- openai
+- python-dotenv
+- azure-identity
+- azure-keyvault-secrets
+- starlette
+- tiktoken
+- prometheus_fastapi_instrumentator
+- pydantic-core
 
 #### Start Server
+
+To start the server:
+
 ```
 make run-local
 ```
 
 ### Docker
-To run the API using Docker, you can use the following commands:
+
+To run the API using Docker, use the following commands:
 
 #### Build and Run
+
 ```
 make build
 make run
 ```
 
+## Terraform Setup and Usage
 
-# Terraform Setup and Usage
+This project uses Terraform to manage infrastructure. Terraform scripts are located in the `terraform/envs/stable` directory.
 
-This project uses Terraform to manage infrastructure. The Terraform scripts are located in the `terraform/envs/stable` directory.
-
-## Prerequisites
+### Prerequisites
 
 - Terraform >= 0.14
 - Azure CLI
 - Make
 
 ### Environment Variables
-The following environment variables are required to be set in your environment:
+
+Set the following environment variables:
+
 ```
 ARM_CLIENT_ID
 ARM_CLIENT_SECRET
@@ -116,60 +133,93 @@ SYSTEM_API_KEY
 AZURE_VAULT_ID
 ```
 
+### Linting
 
-## Linting
-
-Before running any Terraform commands, it's a good practice to lint your Terraform scripts to catch any syntax or formatting issues. You can do this by running the following command:
+Lint your Terraform scripts to catch syntax or formatting issues:
 
 ```
 make tf-lint
 ```
 
-If the linting fails, you will need to fix the issues before you can proceed. You can also run the following command to automatically fix some of the issues:
+To automatically fix some issues:
 
 ```
 make tf-fmt
 ```
 
-## Initialization
-Before you can apply any Terraform configuration, you need to initialize your Terraform working directory. You can do this by running the following command:
+### Initialization
+
+Initialize your Terraform working directory:
 
 ```
 make tf-init
 ```
 
-This command is also defined in the Makefile and it runs the init_terraform.sh script located in the buildscripts directory.
+### Planning
 
-
-## Planning
-The terraform plan command is used to create an execution plan. This step is necessary to see which actions Terraform will perform to reach the desired state defined in the Terraform scripts. 
-
-You can do this by running the following command:
+Create an execution plan to see the actions Terraform will perform:
 
 ```
 make tf-plan
 ```
 
-## Applying
-After planning, the next step is to apply the changes required to reach the desired state of the configuration, or the pre-determined set of actions generated by a terraform plan execution plan. 
+### Applying
 
-You can do this by running the following command:
+Apply the changes to reach the desired state:
 
 ```
 make tf-apply
 ```
 
-## Destroying
-If you want to destroy all resources created by Terraform, you can do this by running the following command:
+
+### Destroying
+
+Destroy all resources managed by Terraform:
 
 ```
 make tf-destroy
 ```
 
-Please note that this command will destroy all resources managed by Terraform in your Azure subscription.
+Note: This command will remove all resources in your Azure subscription managed by Terraform.
 
 ## Continuous Deployment
-This project is set up to use GitHub Actions for continuous deployment. The workflow is defined in .github/workflows/deploy-terraform.yml. On every push to the main branch, the workflow lints and initializes Terraform, creates an execution plan, and applies it. Ensure that the required environment variables are set in your GitHub repository secrets.
+
+This project uses GitHub Actions for continuous deployment. The workflow is defined in `.github/workflows/deploy-terraform.yml`. On each push to the main branch, the workflow lints, initializes, plans, and applies Terraform changes. Ensure required environment variables are set in your GitHub repository secrets.
 
 ## Metrics and Monitoring
-The application is instrumented with `Prometheus FastAPI Instrumentator`. In order to enable the collection of these metrics, the environment variable `ENABLE_METRICS` must be set to `True`. Once set, metrics can be scraped from the `/metrics` path.
+
+The application is instrumented with `Prometheus FastAPI Instrumentator`. Enable metrics collection by setting the `ENABLE_METRICS` environment variable to `True`. Metrics can then be scraped from the `/metrics` path.
+
+## Contributing
+
+We welcome contributions to AEP! To contribute, please follow these steps:
+
+1. **Fork the repository**: Create a fork of the repository on GitHub.
+
+2. **Clone the repository**: Clone your fork locally.
+    ```
+    git clone https://github.com/your-username/ai-enhanced-platform.git
+    ```
+
+3. **Create a branch**: Create a new branch for your feature or bugfix.
+    ```
+    git checkout -b feature/your-feature-name
+    ```
+
+4. **Make your changes**: Implement your changes and commit them with descriptive messages.
+    ```
+    git commit -m "Add feature/your-feature-name: description of changes"
+    ```
+
+5. **Push to GitHub**: Push your changes to your forked repository.
+    ```
+    git push origin feature/your-feature-name
+    ```
+
+6. **Create a Pull Request**: Open a pull request against the main repository. Provide a detailed description of your changes and any relevant context.
+
+7. **Review Process**: Your pull request will be reviewed by project maintainers. Please be responsive to feedback and make any necessary adjustments.
+
+8. **Merge**: Once approved, your pull request will be merged into the main branch.
+
+Thank you for contributing to AEP!
