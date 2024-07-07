@@ -5,7 +5,7 @@ name: CI PR Summary Pipeline
 on:
   pull_request:
     branches:
-      - master
+      - main
   workflow_dispatch:
 
 jobs: 
@@ -13,9 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     env: 
       # Set environment variables
-      X_API_KEY: ${{ secrets.SYSTEM_API_KEY }}
-      X_API_CONSUMER: ${{ secrets.SYSTEM_CONSUMER_UUID }}
-      API_HOST: "https://app-aep-api-s-latest-uksouth.azurewebsites.net/"
+      X_API_KEY: ${{ secrets.AEP_API_KEY }}
+      X_API_CONSUMER: ${{ secrets.AEP_CONSUMER_UUID }}
+      API_HOST: "https://api.aep.clouddev.works/"
       WORKING_DIRECTORY: ${{ github.workspace }}/
 
     steps:
@@ -27,7 +27,7 @@ jobs:
       - name: Create a diff file
         run: |
           # Generate a diff file between the current branch and 'origin/master'
-          git diff origin/master...remotes/origin/${{ github.head_ref }} > ${{ env.working_directory }}diff.txt && cat ${{ env.working_directory }}diff.txt
+          git diff origin/main...remotes/origin/${{ github.head_ref }} > ${{ env.working_directory }}diff.txt && cat ${{ env.working_directory }}diff.txt
 
       - name: Generate a response
         run: |
