@@ -34,6 +34,7 @@ jobs:
 
       - name: Create .env file
         run: |
+          pwd
           echo "AZURE_VAULT_ID=${AZURE_VAULT_ID}" >> .env
           echo "AZURE_CLIENT_ID=${AZURE_CLIENT_ID}" >> .env
           echo "AZURE_TENANT_ID=${AZURE_TENANT_ID}" >> .env
