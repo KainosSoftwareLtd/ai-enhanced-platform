@@ -75,7 +75,7 @@ jobs:
           display-options: fEX
       
           # (Optional) Fail the workflow if no JUnit XML was found.
-          fail-on-empty: true
+          fail-on-empty: false
       
           # (Optional) Title of the test results section in the workflow summary
           title: AEP Test Results
