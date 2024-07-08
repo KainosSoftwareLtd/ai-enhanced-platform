@@ -1,21 +1,21 @@
-name: CI PR Summary Pipeline
+name: CI PR Reviewer Pipeline
 
-# Trigger the workflow when a pull request is opened or updated on the 'master' branch,
+# Trigger the workflow when a pull request is opened or synchronized with the master branch,
 # or manually triggered using the workflow_dispatch event.
 on:
   pull_request:
     branches:
-      - master
+      - main
   workflow_dispatch:
 
 jobs: 
   review:
     runs-on: ubuntu-latest
     env: 
-      # Set environment variables
-      X_API_KEY: ${{ secrets.SYSTEM_API_KEY }}
-      X_API_CONSUMER: ${{ secrets.SYSTEM_CONSUMER_UUID }}
-      API_HOST: "https://app-aep-api-s-latest-uksouth.azurewebsites.net/"
+      # Set environment variables for the job
+      X_API_KEY: ${{ secrets.AEP_API_KEY }}
+      X_API_CONSUMER: ${{ secrets.AEP_CONSUMER_UUID }}
+      API_HOST: "https://api.aep.clouddev.works/"
       WORKING_DIRECTORY: ${{ github.workspace }}/
 
     steps:
@@ -26,12 +26,12 @@ jobs:
 
       - name: Create a diff file
         run: |
-          # Generate a diff file between the current branch and 'origin/master'
-          git diff origin/master...remotes/origin/${{ github.head_ref }} > ${{ env.working_directory }}diff.txt && cat ${{ env.working_directory }}diff.txt
+          # Generate a diff file containing the changes between the current branch and the master branch
+          git diff origin/main...remotes/origin/${{ github.head_ref }} > ${{ env.working_directory }}diff.txt && cat ${{ env.working_directory }}diff.txt
 
       - name: Generate a response
         run: |
-          # Set variables
+          # Set variables for API request
           API_HOST=$(printenv API_HOST)
           WORKING_DIRECTORY=$(printenv WORKING_DIRECTORY)
           X_API_CONSUMER=$(printenv X_API_CONSUMER)
@@ -45,13 +45,11 @@ jobs:
               exit 1
           fi
 
-          # Read the contents of the diff file
+          # Read the contents of the diff file and create a JSON body for the API request
           file_contents=$(cat "${WORKING_DIRECTORY}${DIFF_FILE}")
+          json_body=$(jq -n --arg pt "pullrequest-review" --arg p "$file_contents" '{prompt_type: $pt, prompt: $p}')
 
-          # Create a JSON body for the API request
-          json_body=$(jq -n --arg pt "pullrequest-summary-perfile" --arg p "$file_contents" '{prompt_type: $pt, prompt: $p}')
-
-          # Send a POST request to the API
+          # Send the API request and store the response
           response=$(curl -s -i -X POST "${API_HOST}/predefined" \
               -H "Content-Type: application/json" \
               -H "X-API-CONSUMER: ${X_API_CONSUMER}" \
@@ -60,17 +58,21 @@ jobs:
 
           echo "Response: $response"
 
-          # Extract the response code from the HTTP response
+          # Extract the response code from the HTTP response headers
           response_code=$(echo "$response" | awk -F' ' '/HTTP\/1.1/{print $2}' | head -n 1)
 
+          # Process the response based on the response code
           if [ "$response_code" -eq 200 ]; then
               echo "File contents sent successfully."
-              # Remove headers from the response
+              # Remove unnecessary headers from the response
               response_body=$(echo "$response" | tail -n +2)
               response_body=$(echo "$response_body" | sed '/^date: /Id' | sed '/^server: /Id' | sed '/^content-length: /Id' | sed '/^content-type: /Id')
-              response_body=$(echo "$response_body" | sed 's/^"\(.*\)"$/\1/') # Remove trailing and leading quotes
-              response_body=$(echo "$response_body" | sed 's/```markdown//') # Remove the initial markdown code block identifier if it exists
-              response_body=$(echo "$response_body" | sed 's/```//') # Remove the last code block identifier
+              # Remove trailing and leading quotes
+              response_body=$(echo "$response_body" | sed 's/^"\(.*\)"$/\1/')
+              # Remove the initial markdown code block identifier if it exists
+              response_body=$(echo "$response_body" | sed 's/```markdown//')
+              # Remove the last code block identifier
+              response_body=$(echo "$response_body" | sed 's/```//')
 
               # Write the response body to a file
               echo -e "$response_body" > "${WORKING_DIRECTORY}${RESPONSE_MD_FILE}"
@@ -79,6 +81,7 @@ jobs:
               echo -e "Request to AEP failed to process" > "${WORKING_DIRECTORY}${RESPONSE_MD_FILE}"
           fi
 
+          # Check if the response was written to the file successfully
           if [ $? -eq 0 ]; then
               echo "Response saved as response.md"
           else
@@ -89,24 +92,20 @@ jobs:
       - name: Get the response as a variable 
         id: get_response
         run: |
-          # Set the 'response' environment variable with the contents of the response.md file
+          # Read the response from the file and set it as an environment variable
           {
             echo 'response<<EOF'
             cat ${WORKING_DIRECTORY}response.md
             echo EOF
           } >> "$GITHUB_ENV"
 
-      # Update the PR body with the AEP API response
+      # Uses the response to create a comment on the pull request
       - uses: actions/github-script@v7
         with:
           script: |
-            const prBody = context.payload.pull_request.body || '';
-            const updatedBody = prBody.includes('## 🤖AEP PR SUMMARY🤖')
-              ? prBody.replace(/## 🤖AEP PR SUMMARY🤖[\s\S]*/, '') + '\n\n## 🤖AEP PR SUMMARY🤖\n\n' + process.env.response
-              : prBody + '\n\n## 🤖AEP PR SUMMARY🤖\n\n' + process.env.response;
-            github.rest.pulls.update({
-              pull_number: context.issue.number,
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: updatedBody
+              body: process.env.response
             })
