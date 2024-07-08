@@ -1,5 +1,7 @@
 # AEP: AI Enhanced Platform
 
+[![aep](https://github.com/KainosSoftwareLtd/ai-enhanced-platform/actions/workflows/run-test-suite.yml/badge.svg)](https://github.com/KainosSoftwareLtd/ai-enhanced-platform/actions/workflows/run-test-suite.yml)
+
 Welcome to AEP, your comprehensive solution for integrating Generative AI workflows into your build system. Enhance your DevOps processes with AI-driven pull request summarization, code reviews, and more.
 
 Get your API key and revolutionize your DevOps journey with AI-powered insights and assistance today. 🚀
