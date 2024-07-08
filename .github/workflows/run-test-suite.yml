@@ -29,7 +29,11 @@ jobs:
       azure_openai_api_version: "2023-12-01-preview"
       SYSTEM_API_KEY: "system"
       OPENAI_API_TYPE: "azure"
-    run: |
+
+    steps:
+
+      - name: Create .env file
+        run: |
           echo "AZURE_VAULT_ID=${AZURE_VAULT_ID}" >> .env
           echo "AZURE_CLIENT_ID=${AZURE_CLIENT_ID}" >> .env
           echo "AZURE_TENANT_ID=${AZURE_TENANT_ID}" >> .env
@@ -43,8 +47,7 @@ jobs:
           echo "azure_openai_api_version=${azure_openai_api_version}" >> .env
           echo "SYSTEM_API_KEY=${SYSTEM_API_KEY}" >> .env
           echo "OPENAI_API_TYPE=${OPENAI_API_TYPE}" >> .env
-
-    steps:
+  
       - name: Checkout repository
         uses: actions/checkout@v2
 
