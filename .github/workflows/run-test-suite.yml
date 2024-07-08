@@ -42,8 +42,8 @@ jobs:
 
       - name: Run tests
         run: |
-	        include .env
-	        make unittest
+          include .env
+          make unittest
 
       - name: Surface failing tests
         if: always()
