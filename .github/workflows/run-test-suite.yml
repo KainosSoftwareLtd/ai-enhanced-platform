@@ -41,7 +41,6 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Run tests
-        working-directory: /
         run: make unittest
 
       - name: Surface failing tests
