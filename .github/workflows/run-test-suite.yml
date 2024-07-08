@@ -59,6 +59,7 @@ jobs:
 
       - name: Run tests
         run: |
+          pwd
           make unittest
 
       - name: Surface failing tests
