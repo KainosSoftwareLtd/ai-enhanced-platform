@@ -35,19 +35,19 @@ jobs:
       - name: Create .env file
         run: |
           pwd
-          echo "AZURE_VAULT_ID=${AZURE_VAULT_ID}" >> .env
-          echo "AZURE_CLIENT_ID=${AZURE_CLIENT_ID}" >> .env
-          echo "AZURE_TENANT_ID=${AZURE_TENANT_ID}" >> .env
-          echo "AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}" >> .env
-          echo "AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}" >> .env
-          echo "AZURE_OPENAI_KEY=${AZURE_OPENAI_KEY}" >> .env
-          echo "OPENAI_API_KEY=${OPENAI_API_KEY}" >> .env
-          echo "AZURE_CS_ENDPOINT=${AZURE_CS_ENDPOINT}" >> .env
-          echo "AZURE_CS_KEY=${AZURE_CS_KEY}" >> .env
-          echo "SYSTEM_PROMPT_FILE=${SYSTEM_PROMPT_FILE}" >> .env
-          echo "azure_openai_api_version=${azure_openai_api_version}" >> .env
-          echo "SYSTEM_API_KEY=${SYSTEM_API_KEY}" >> .env
-          echo "OPENAI_API_TYPE=${OPENAI_API_TYPE}" >> .env
+          echo "AZURE_VAULT_ID=${AZURE_VAULT_ID}" >> ./.env
+          echo "AZURE_CLIENT_ID=${AZURE_CLIENT_ID}" >> ./.env
+          echo "AZURE_TENANT_ID=${AZURE_TENANT_ID}" >> ./.env
+          echo "AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}" >> ./.env
+          echo "AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}" >> ./.env
+          echo "AZURE_OPENAI_KEY=${AZURE_OPENAI_KEY}" >> ./.env
+          echo "OPENAI_API_KEY=${OPENAI_API_KEY}" >> ./.env
+          echo "AZURE_CS_ENDPOINT=${AZURE_CS_ENDPOINT}" >> ./.env
+          echo "AZURE_CS_KEY=${AZURE_CS_KEY}" >> ./.env
+          echo "SYSTEM_PROMPT_FILE=${SYSTEM_PROMPT_FILE}" >> ./.env
+          echo "azure_openai_api_version=${azure_openai_api_version}" >> ./.env
+          echo "SYSTEM_API_KEY=${SYSTEM_API_KEY}" >> ./.env
+          echo "OPENAI_API_TYPE=${OPENAI_API_TYPE}" >> ./.env
   
       - name: Checkout repository
         uses: actions/checkout@v2
