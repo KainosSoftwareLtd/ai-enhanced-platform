@@ -17,6 +17,10 @@ mkdocs-build:
 run:
 	./buildscripts/run_docker.sh
 
+unittest:
+	$(MAKE) build-local
+	$(MAKE) run-tests
+
 run-tests:
 	./buildscripts/run_tests.sh
 

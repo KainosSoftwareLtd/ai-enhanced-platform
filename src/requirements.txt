@@ -12,3 +12,4 @@ prometheus_fastapi_instrumentator
 pydantic-core
 pytest
 markdown
+coverage
