@@ -89,8 +89,9 @@ def reduce_prompt_tokens(prompt):
     
 
 def check_for_prompt_inj(prompt): 
-
+    event_logger.debug(f"Checking for prompt injection")
     url = config.azure_cs_endpoint + "/contentsafety/text:shieldPrompt?api-version=2024-02-15-preview"
+    event_logger.debug(f"CS Config URL: {url}")
     headers = {
         'Ocp-Apim-Subscription-Key': config.azure_cs_key,
         'Content-Type': 'application/json'
@@ -101,15 +102,20 @@ def check_for_prompt_inj(prompt):
             f"{prompt}"
         ]
     }
-    response = requests.post(url, headers=headers, data=json.dumps(data))
+    try:
+      response = requests.post(url, headers=headers, data=json.dumps(data))
+      event_logger.debug(f"Response from AI ContentSafety: {response.json()}")
 
-    # Log the response
-    response_json = response.json()
+      # Log the response
+      response_json = response.json()
 
-    # Check if attackDetected is True in either userPromptAnalysis or documentsAnalysis
-    if response_json['documentsAnalysis'][0]['attackDetected']:
-        event_logger.info(f"Response from AI ContentSafety: {response.json()}")
-        event_logger.info(f"Prompt injection Detected in: {prompt}")
-        return False  # Fail if attackDetected is True
+     # Check if attackDetected is True in either userPromptAnalysis or documentsAnalysis
+      if response_json['documentsAnalysis'][0]['attackDetected']:
+          event_logger.info(f"Response from AI ContentSafety: {response.json()}")
+          event_logger.info(f"Prompt injection Detected in: {prompt}")
+          return False  # Fail if attackDetected is True
+      
+    except Exception as err:
+       event_logger.error(f"Failed to perform prompt injection detection: {err}")
     
     return True
