@@ -12,6 +12,13 @@ The diagram below illustrates the flow of the AEP application from the pipeline'
 
 ![AEP Application Flow](img/aep-application-flow.png)
 
+## Prompt Injection Detection
+AEP uses [Azure's AI Content Safety Service](https://azure-ai-content-safety-api-docs.developer.azure-api.net/) to detect prompt injections in the generated text. 
+
+If the prompt contains more than 10000 characters, the prompt is split into smaller chunks of 10000 characters each. Each chunk is then sent to the AI Content Safety Service for analysis. 
+
+If the prompt contains more than 100000 characters, the prompt is automatically flagged as a possible prompt injection to protect the system from potential abuse.
+
 ## AEP Costs Summary (March 31 - April 29) 💰
 
 | Azure Resource                           | SKU/Size                                     | Cost    |
