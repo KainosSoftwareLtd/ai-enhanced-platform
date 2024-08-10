@@ -61,6 +61,16 @@ class TestPromptOps:
         print(compressed_prompt)
         assert match is None
 
+    def test_prompt_injection_detection(self):
+        # Generate a prompt with more than 100000 unicode characters
+        prompt = "a"*100001
+
+        # Check for prompt injection
+        result = prompts.check_for_prompt_inj(prompt)
+        
+        # Assert that the function returns False
+        assert not result
+
     def test_retrieve_prompts_exc(self):
         # rename prompt file to force an exception
         os.rename('system_prompts/prompts.json', 'system_prompts/prompts.json.test')

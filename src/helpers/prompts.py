@@ -3,12 +3,8 @@ import tiktoken
 import re
 from logger.logger import event_logger
 import helpers.config as config
-from dotenv import load_dotenv
+import helpers.open_ai as openai
 from middleware.metrics import update_number_of_tokens_saved, update_perc_of_tokens_saved
-import requests
-import helpers.config as config
-
-load_dotenv()
 
 def read_prompt(prompt_type, request_id, prompt):
     event_logger.info(f"Request ID: {request_id} Searching Prompt File")
@@ -89,33 +85,36 @@ def reduce_prompt_tokens(prompt):
     
 
 def check_for_prompt_inj(prompt): 
-    event_logger.debug(f"Checking for prompt injection")
-    url = config.azure_cs_endpoint + "/contentsafety/text:shieldPrompt?api-version=2024-02-15-preview"
-    event_logger.debug(f"CS Config URL: {url}")
-    headers = {
-        'Ocp-Apim-Subscription-Key': config.azure_cs_key,
-        'Content-Type': 'application/json'
-    }
-    data = {
-         # Use the prompt argument as the userPrompt value
-        "documents": [
-            f"{prompt}"
-        ]
-    }
-    try:
-      response = requests.post(url, headers=headers, data=json.dumps(data))
-      event_logger.debug(f"Response from AI ContentSafety: {response.json()}")
+  """
+  Check for prompt injection in the given prompt. 
+  
+  If the prompt contains more than 10000 unicode characters, it will be split into chunks of 10000 characters.
 
-      # Log the response
-      response_json = response.json()
+  If the prompt contains more than 100000 unicode characters, the function will return False.
 
-     # Check if attackDetected is True in either userPromptAnalysis or documentsAnalysis
-      if response_json['documentsAnalysis'][0]['attackDetected']:
-          event_logger.info(f"Response from AI ContentSafety: {response.json()}")
-          event_logger.info(f"Prompt injection Detected in: {prompt}")
-          return False  # Fail if attackDetected is True
-      
-    except Exception as err:
-       event_logger.error(f"Failed to perform prompt injection detection: {err}")
-    
-    return True
+  Args:
+    prompt (str): The prompt to check for injection.
+  Returns:
+    bool: True if no prompt injection is detected, False otherwise.
+  """
+  # Calculate number of unicode characters in the prompt
+  unicode_count = len(prompt.encode('utf-8'))
+
+  # If the number of unicode characters exceeds 100000 then return False
+  if unicode_count > 100000:
+    event_logger.warning("Prompt contained more than 100000 unicode characters.")
+    return False
+
+  # If the number of unicode characters exceeds 10000 then split the prompt into chunks of 10000 characters
+  if unicode_count > 10000:
+    prompt = [prompt[i:i+10000] for i in range(0, len(prompt), 10000)]
+  else:
+    prompt = [prompt]
+
+  # Loop through the number of prompt chunks and check for prompt injection if any return False then return False
+  for chunk in prompt:
+    result = openai.call_ai_content_safety(chunk)
+    if not result:
+      return False
+
+  return True

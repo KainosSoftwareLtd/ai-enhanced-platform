@@ -25,13 +25,12 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.TEST_AZURE_OPENAI_KEY }}
       AZURE_CS_ENDPOINT: ${{ secrets.TEST_AZURE_CS_ENDPOINT }}
       AZURE_CS_KEY: ${{ secrets.TEST_AZURE_CS_KEY }}
-      SYSTEM_PROMPT_FILE: "system_prompts/prompts.json"
+
       azure_openai_api_version: "2023-12-01-preview"
       SYSTEM_API_KEY: "system"
       OPENAI_API_TYPE: "azure"
 
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v2
 
@@ -40,23 +39,15 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Run tests
+      - name: Install dependencies
         run: |
-          pwd
-          echo "AZURE_VAULT_ID=${AZURE_VAULT_ID}" >> .env
-          echo "AZURE_CLIENT_ID=${AZURE_CLIENT_ID}" >> .env
-          echo "AZURE_TENANT_ID=${AZURE_TENANT_ID}" >> .env
-          echo "AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}" >> .env
-          echo "AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}" >> .env
-          echo "AZURE_OPENAI_KEY=${AZURE_OPENAI_KEY}" >> .env
-          echo "OPENAI_API_KEY=${OPENAI_API_KEY}" >> .env
-          echo "AZURE_CS_ENDPOINT=${AZURE_CS_ENDPOINT}" >> .env
-          echo "AZURE_CS_KEY=${AZURE_CS_KEY}" >> .env
-          echo "SYSTEM_PROMPT_FILE=${SYSTEM_PROMPT_FILE}" >> .env
-          echo "azure_openai_api_version=${azure_openai_api_version}" >> .env
-          echo "SYSTEM_API_KEY=${SYSTEM_API_KEY}" >> .env
-          echo "OPENAI_API_TYPE=${OPENAI_API_TYPE}" >> .env
-          make unittest
+          python -m pip install --upgrade pip
+          if [ -f src/requirements.txt ]; then pip install -r src/requirements.txt; fi
+
+      - name: Run tests
+        working-directory: src/
+        run: |
+          pytest tests/ -vv -s --junit-xml=test-results.xml
 
       - name: Surface failing tests
         if: always()
@@ -75,7 +66,7 @@ jobs:
           display-options: fEX
       
           # (Optional) Fail the workflow if no JUnit XML was found.
-          fail-on-empty: false
+          fail-on-empty: true
       
           # (Optional) Title of the test results section in the workflow summary
           title: AEP Test Results
