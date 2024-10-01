@@ -4,6 +4,7 @@ import helpers.prompts as prompts
 from openai import OpenAI, OpenAIError, AzureOpenAI
 from logger.logger import event_logger
 from middleware.metrics import update_last_request_time
+import requests
 
 def call_openai(system_prompt, user_prompt, query, model):
   tic = time.perf_counter()
@@ -48,6 +49,46 @@ def call_openai(system_prompt, user_prompt, query, model):
     event_logger.error(err)
     return {"success": False, "error": str(err), "time": f"0.0"}
 
+
+def call_ai_content_safety(prompt):
+  """
+  Check for prompt injection in a single chunk of the prompt.
+  Args:
+    chunk (str): The prompt to check for injection.
+  """
+  
+  url = config.azure_cs_endpoint + "/contentsafety/text:shieldPrompt?api-version=2024-02-15-preview"
+  headers = {
+    'Ocp-Apim-Subscription-Key': config.azure_cs_key,
+    'Content-Type': 'application/json'
+  }
+
+  # Use the prompt argument as the document value
+  data = {
+    "documents": [
+      f"{prompt}"
+    ]
+  }
+
+  # Make a POST request to the AI Content Safety API
+  try:
+    response = requests.post(url, headers=headers, json=data)
+    # Log the response
+    response_json = response.json()
+    event_logger.info(f"Response from AI ContentSafety: {response_json}")
   except Exception as err:
-    event_logger.error(err)
-    return {"success": False, "error": str(err), "time": f"0.0"}
+    event_logger.error(f"{err}")
+    event_logger.error("Failed to make request to AI Content Safety")
+    return False
+
+  # Check if attackDetected is True in documentsAnalysis
+  try:
+    if response_json['documentsAnalysis'][0]['attackDetected']:
+      event_logger.info(f"Prompt injection Detected in: {prompt}")
+      return False  # Fail if attackDetected is True
+  except Exception as err:
+    event_logger.error("Failed to check for prompt injection in response from AI Content Safety")
+    event_logger.error(f"{err}")
+    return False
+  
+  return True

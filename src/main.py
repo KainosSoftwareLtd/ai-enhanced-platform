@@ -74,21 +74,22 @@ async def create_predefined_query(request: Request, query: PredefinedQuery):
     try:
         prompt_dict = read_prompt(query.prompt_type, query.request_id, query.prompt)
     except Exception as err:
-        event_logger.error(f"Request ID: {query.request_id} | Error: {err}")
+        event_logger.info(f"Request ID: {query.request_id} | Error: {err}")
         raise HTTPException(status_code=500, detail=f"Internal Server Error. Request ID: {query.request_id}")
     
     # Check for prompt injection
     result = check_for_prompt_inj(prompt_dict["prompt"])
     if not result:
-        event_logger.warning("Possible malicious content detected, including prompt injection.")
-        raise HTTPException(status_code=400, detail="Bad Request: Possible malicious content detected in prompt.")
-    
+        event_logger.warning(f"Possible malicious content detected, including prompt injection in request ID: {query.request_id}")
+        raise HTTPException(status_code=400, detail=f"Bad Request: Possible malicious content detected in prompt. If you believe this is a mistake, reference: {query.request_id}")
+    event_logger.info(f"Checked for injection")
+
     response = call_openai(prompt_dict["system"], prompt_dict["user"], prompt_dict["prompt"], prompt_dict["model"])
 
     # If response is not successful, raise a 500 status code and log error in logs/requests.log
     if not response["success"]:
         error = response["error"]
-        request_logger.error(f"Request ID: {query.request_id} | Error: {error} | Time Elapsed: {response['time']}")
+        request_logger.info(f"Request ID: {query.request_id} | Error: {error} | Time Elapsed: {response['time']}")
         raise HTTPException(status_code=500, detail=f"Internal Server Error. Request ID: {query.request_id} | Error: {error}")
     else: 
         request_logger.info(f"Request ID: {query.request_id} | Successful: True | Time Elapsed: {response['time']}")
@@ -103,6 +104,13 @@ async def create_info_query(request: Request, info_query: CustomQuery):
     # If compression is enabled, reduce the prompt tokens
     if info_query.compression_enabled:
         info_query.prompt = reduce_prompt_tokens(info_query.prompt)
+    
+    # Check for prompt injection
+    result = check_for_prompt_inj(info_query.prompt)
+    if not result:
+        event_logger.warning(f"Possible malicious content detected, including prompt injection in request ID: {info_query.request_id}")
+        raise HTTPException(status_code=400, detail=f"Bad Request: Possible malicious content detected in prompt. If you believe this is a mistake, reference: {info_query.request_id}")
+    event_logger.info(f"Checked for injection")
 
     # Read in custom prompt defined in the request and make call to OpenAI
     response = call_openai(info_query.system_prompt, info_query.user_prompt, info_query.prompt, info_query.model)
@@ -120,3 +128,5 @@ async def create_info_query(request: Request, info_query: CustomQuery):
 @app.get("/healthcheck")
 def healthcheck():
     return {"status": "healthy"}
+
+
