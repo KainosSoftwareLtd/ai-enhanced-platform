@@ -25,4 +25,17 @@ resource "azurerm_key_vault_access_policy" "keyvaultap" {
   secret_permissions = ["Get", "List", "Set",
     "Delete", "Backup",
   "Restore", "Recover"]
+
+  certificate_permissions = ["Get", "List"]
+}
+
+# Add the app service to the key vault access policy to get certs
+resource "azurerm_key_vault_access_policy" "appservice" {
+  key_vault_id = azurerm_key_vault.keyvault.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = var.app_service_entra_id
+
+  certificate_permissions = ["Get"]
+
+  secret_permissions = ["Get"]
 }

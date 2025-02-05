@@ -60,9 +60,21 @@ Customize prompts for specific needs using system and user prompts:
 Create a `.env` file in the root of the project with the following content:
 
 ```
-OPENAI_API_KEY=<your_openai_api_key>
-SYSTEM_API_KEY=<your_system_api_key>
-AZURE_VAULT_ID=<your_azure_key_vault_id>
+OPENAI_API_KEY=
+SYSTEM_API_KEY=
+AZURE_VAULT_ID=
+OPENAI_API_TYPE=
+OPENAI_MODEL=
+AZURE_OPENAI_ENDPOINT=
+AZURE_CS_ENDPOINT=
+AZURE_CS_KEY=
+APPINSIGHTS_KEY=
+APPLICATIONINSIGHTS_CONNECTION_STRING=
+OTEL_RESOURCE_ATTRIBUTES=
+OTEL_SERVICE_NAME=
+OTEL_LIVE_METRICS_ENABLED=
+OTEL_DISABLE_OFFLINE_STORAGE=
+OTEL_TRACES_SAMPLER=
 ```
 
 ### Local Setup

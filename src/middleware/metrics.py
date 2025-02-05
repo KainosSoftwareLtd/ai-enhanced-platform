@@ -1,8 +1,10 @@
 from prometheus_fastapi_instrumentator import Instrumentator, metrics
 from prometheus_fastapi_instrumentator.metrics import Info
 from prometheus_client import Gauge, Counter
-from logger.logger import event_logger
 from typing import Callable
+import logging 
+
+logger = logging.getLogger(__name__)
 
 # custom AEP metrics
 last_request_time_elapsed = Gauge('last_request_time_elapsed', 'Time elapsed for last request')
@@ -29,8 +31,8 @@ def requests_per_consumer() -> Callable[[Info], None]:
     return instrumentation
 
 # begin instrumentation
-def begin_instrumentation(app):
-    event_logger.info("Beginning metric insrumentation")
+def begin_instrumentation():
+    logger.info("Beginning metric insrumentation")
 
     # define instrumentator
     instrumentator = Instrumentator(
@@ -58,8 +60,7 @@ def begin_instrumentation(app):
     )).add(metrics.default(
     )).add(requests_per_consumer())
 
-    event_logger.info("Adding custom metrics to instrumentator")
-    instrumentator.instrument(app).expose(app)
+    return instrumentator
 
 
 def update_last_request_time(last_request_time: int):

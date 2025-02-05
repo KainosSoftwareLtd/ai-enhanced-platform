@@ -2,7 +2,7 @@
 
 Here's how to run the API locally.
 
-- [Getting Started](#getting-started)
+- [Getting Started - local](#getting-started---local)
   - [Secrets Setup](#secrets-setup)
     - [Requirements](#requirements)
       - [Start Server](#start-server)
@@ -22,6 +22,13 @@ SYSTEM_API_KEY=<system_api_key>
 AZURE_VAULT_ID=<azure_vault_id>
 AZURE_CS_ENDPOINT=<azure_cs_endpoint>
 AZURE_CS_KEY=<azure_cs_key>
+APPINSIGHTS_KEY=<appinsights_key>
+APPLICATIONINSIGHTS_CONNECTION_STRING=<applicationinsights_connection_string>
+OTEL_RESOURCE_ATTRIBUTES=<otel_resource_attributes>
+OTEL_SERVICE_NAME=<otel_service_name>
+OTEL_LIVE_METRICS_ENABLED=<otel_live_metrics_enabled>
+OTEL_DISABLE_OFFLINE_STORAGE=<otel_disable_offline_storage>
+OTEL_TRACES_SAMPLER=<otel_traces_sampler>
 ```
 
 The `OPENAI_API_TYPE` can be either `openai` or `azure`.
@@ -32,6 +39,13 @@ The `SYSTEM_API_KEY` is the system API key you can use to authenticate as the 's
 The `AZURE_VAULT_ID` is your Azure Key Vault ID where consumer keys are stored.
 The `AZURE_CS_ENDPOINT` is the Azure Cognitive Services Content Safety endpoint.
 The `AZURE_CS_KEY` is the Azure Cognitive Services Content Safety key.
+The `APPINSIGHTS_KEY` is the Application Insights instrumentation key.
+The `APPLICATIONINSIGHTS_CONNECTION_STRING` is the Application Insights connection string.
+The `OTEL_RESOURCE_ATTRIBUTES` are the OpenTelemetry resource attributes.
+The `OTEL_SERVICE_NAME` is the OpenTelemetry service name.
+The `OTEL_LIVE_METRICS_ENABLED` indicates if live metrics are enabled.
+The `OTEL_DISABLE_OFFLINE_STORAGE` indicates if offline storage is disabled.
+The `OTEL_TRACES_SAMPLER` is the OpenTelemetry traces sampler.
 
 ### Requirements
 
