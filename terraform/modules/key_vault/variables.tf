@@ -33,6 +33,11 @@ variable "sku_name" {
   description = "The SKU of the Key Vault"
 }
 
+variable "app_service_entra_id" {
+  type        = string
+  description = "The entra id for your app service"
+}
+
 variable "tags" {
   type        = map(string)
   description = "Tags that should be applied to resources created by this module. Runtime tag values will take precedent over compile time values"

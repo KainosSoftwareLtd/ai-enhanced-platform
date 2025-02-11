@@ -51,6 +51,39 @@ resource "azurerm_linux_web_app" "apps" {
   }
 }
 
+# Add diagnostic settings to the app services
+resource "azurerm_monitor_diagnostic_setting" "app_services" {
+  for_each                   = azurerm_linux_web_app.apps
+  name                       = format("diag-%s", each.key)
+  target_resource_id         = each.value.id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+
+  log {
+    category = "AppServiceHTTPLogs"
+    enabled  = true
+  }
+
+  log {
+    category = "AppServiceConsoleLogs"
+    enabled  = true
+  }
+
+  log {
+    category = "AppServiceAppLogs"
+    enabled  = true
+  }
+
+  log {
+    category = "AppServicePlatformLogs"
+    enabled  = true
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = true
+  }
+}
+
 # Add the certificates required for the custom domains
 data "azurerm_key_vault_certificate" "certs" {
   for_each     = local.app_service_records
@@ -62,7 +95,7 @@ data "azurerm_key_vault_certificate" "certs" {
 resource "azurerm_app_service_certificate" "certs" {
   for_each = data.azurerm_key_vault_certificate.certs
   # We use the subdomain references to pull 
-  name                = each.value.name
+  name                = "${each.value.name}-${each.key}"
   resource_group_name = var.resource_group_name
   location            = var.location
   key_vault_secret_id = each.value.id

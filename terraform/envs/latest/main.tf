@@ -24,18 +24,28 @@ locals {
       docker_image_name = "kainossoftwareltd/ai-enhanced-platform:${var.image_tag}"
 
       app_vars = {
-        OPENAI_API_KEY                  = module.openai.openai_primary_access_key
-        OPENAI_API_TYPE                 = "azure"
-        OPENAI_MODEL                    = var.openai_deployments["model"].name
-        AZURE_OPENAI_ENDPOINT           = module.openai.openai_endpoint
-        SYSTEM_API_KEY                  = var.system_api_key
-        AZURE_VAULT_ID                  = module.key_vault.key_vault_uri
-        AZURE_CLIENT_ID                 = module.identity.identities["aas"].client_id
-        WEBSITES_PORT                   = "8000"
-        DOCKER_REGISTRY_SERVER_USERNAME = var.docker_registry_username
-        DOCKER_REGISTRY_SERVER_PASSWORD = var.docker_registry_password
-        AZURE_CS_ENDPOINT               = module.openai.cs_endpoint
-        AZURE_CS_KEY                    = module.openai.cs_primary_access_key
+        OPENAI_API_KEY                             = module.openai.openai_primary_access_key
+        OPENAI_API_TYPE                            = "azure"
+        OPENAI_MODEL                               = var.openai_deployments["model"].name
+        AZURE_OPENAI_ENDPOINT                      = module.openai.openai_endpoint
+        SYSTEM_API_KEY                             = var.system_api_key
+        AZURE_VAULT_ID                             = module.key_vault.key_vault_uri
+        AZURE_CLIENT_ID                            = module.identity.identities["aas"].client_id
+        WEBSITES_PORT                              = "8000"
+        DOCKER_REGISTRY_SERVER_USERNAME            = var.docker_registry_username
+        DOCKER_REGISTRY_SERVER_PASSWORD            = var.docker_registry_password
+        AZURE_CS_ENDPOINT                          = module.openai.cs_endpoint
+        AZURE_CS_KEY                               = module.openai.cs_primary_access_key
+        APPINSIGHTS_KEY                            = module.app_insights.instrumentation_key
+        APPINSIGHTS_PROFILERFEATURE_VERSION        = "1.0.0"
+        APPINSIGHTS_SNAPSHOTFEATURE_VERSION        = "1.0.0"
+        APPLICATIONINSIGHTS_CONNECTION_STRING      = "InstrumentationKey=${module.app_insights.instrumentation_key}"
+        ApplicationInsightsAgent_EXTENSION_VERSION = "~3"
+        OTEL_RESOURCE_ATTRIBUTES                   = "aep-${var.environment}-${var.image_tag}"
+        OTEL_SERVICE_NAME                          = "aep-${var.environment}-${var.image_tag}"
+        OTEL_LIVE_METRICS_ENABLED                  = var.otel_live_metrics_enabled
+        OTEL_DISABLE_OFFLINE_STORAGE               = var.otel_disable_offline_storage
+        OTEL_TRACES_SAMPLER                        = var.otel_traces_sampler
       }
 
       storage_account = {
@@ -49,30 +59,6 @@ locals {
 
       health_check_path = "/healthcheck"
     }
-
-    inference = {
-      name              = "inference-service"
-      docker_image_name = "kainossoftwareltd/aep-inference:${var.image_tag}"
-
-      app_vars = {
-        AZURE_CLIENT_ID                 = module.identity.identities["aas"].client_id
-        WEBSITES_PORT                   = "8000"
-        DOCKER_REGISTRY_SERVER_USERNAME = var.docker_registry_username
-        DOCKER_REGISTRY_SERVER_PASSWORD = var.docker_registry_password
-      }
-
-      storage_account = {
-        name         = "log-output"
-        type         = "AzureFiles"
-        share_name   = "inference-logs"
-        mount_path   = "/app/logs"
-        account_name = module.logging_storageaccount.storage_account_name
-        access_key   = module.logging_storageaccount.primary_access_key
-      }
-
-      health_check_path = "/healthcheck"
-    }
-
   }
 }
 
@@ -100,9 +86,6 @@ resource "azurerm_consumption_budget_resource_group" "budget" {
     threshold_type = "Actual"
 
     contact_emails = [
-      "joshuak@kainos.com",
-      "matthew.ricketts@kainos.com",
-      "t.thornton@kainos.com"
     ]
   }
 }
@@ -135,6 +118,7 @@ module "key_vault" {
   resource_group_name      = azurerm_resource_group.rg.name
   location                 = azurerm_resource_group.rg.location
   sku_name                 = "standard"
+  app_service_entra_id     = module.app_service.app_service_id
 
   tags = local.tags
 }
@@ -183,6 +167,17 @@ module "log_analytics" {
     azurerm_resource_group.rg
   ]
 
+}
+
+module "app_insights" {
+  source                     = "../../modules/app_insights"
+  environment                = var.environment
+  project                    = var.project
+  resource_group_name        = azurerm_resource_group.rg.name
+  location                   = azurerm_resource_group.rg.location
+  log_analytics_workspace_id = module.log_analytics.log_analytics_id
+
+  tags = local.tags
 }
 
 module "openai" {

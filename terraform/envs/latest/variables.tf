@@ -62,3 +62,21 @@ variable "openai_deployments" {
     }
   }
 }
+
+variable "otel_live_metrics_enabled" {
+  type        = bool
+  description = "Enable live metrics"
+  default     = false
+}
+
+variable "otel_disable_offline_storage" {
+  type        = bool
+  description = "Disable logging to offline storage"
+  default     = false
+}
+
+variable "otel_traces_sampler" {
+  type        = string
+  description = "Changes the rate of trace sampling"
+  default     = "0.1"
+}

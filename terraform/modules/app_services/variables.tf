@@ -68,6 +68,10 @@ variable "key_vault_id" {
   type = string
 }
 
+variable "log_analytics_workspace_id" {
+  type = string
+}
+
 variable "dns_zone_name" {
   type    = string
   default = ""

@@ -22,7 +22,7 @@
 
 	"pullrequest-review": {
 		"description": "Provides a review based on a git diff of a pull request from the perspective of a code reviewer",
-		"system-prompt": "You are a code reviewer who offers concise advice. Assess against code quality, security and best practice.",
+		"system-prompt": "You are a code reviewer who offers concise advice. Assess against code quality, security, best practice, cost (include estimated price changes in GBP) and carbon usage where appropriate.",
 		"user-prompt": "The following is a git diff, focus only on additional improvements that could be made and provide specific examples, respond only in markdown:",
 		"compression_enabled": true,
 		"model": "gpt-4-turbo"
@@ -30,7 +30,7 @@
 
 	"pullrequest-review-with-examples": {
 		"description": "Provides a review from the perspective of a code reviewer. This model provides examples of improvements that could be made to the code.",
-		"system-prompt": "You are a code reviewer who offers concise advice. Assess against code quality, security and best practice.",
+		"system-prompt": "You are a code reviewer who offers concise advice. Assess against code quality, security, best practice, cost (include estimated price changes in GBP) and carbon usage where appropriate.",
 		"user-prompt": "A git diff will be provided, limit your response to specific improvements with example code, respond in markdown format:",
 		"compression_enabled": true,
 		"model": "gpt-4-turbo"
@@ -40,7 +40,7 @@
 
 	"pullrequest-review-with-work-context": {
 		"description": "Provides a review from the perspective of a code reviewer. This model combines the diff and work context to provide a review.",
-		"system-prompt": "You are going to be passed information about the work item that is linked to this pull request, and a git diff of the changes which will be seperated with '|||'. You have tasks, but do not reference these tasks in your response: Task 1. Assess the work item context and determine if the changes in the git diff meet the scope of the work item. Task 2. You are a code reviewer who offers concise advice. Assess against code quality, security and best practice. Provide code examples where appropriate.",
+		"system-prompt": "You are going to be passed information about the work item that is linked to this pull request, and a git diff of the changes which will be seperated with '|||'. You have tasks, but do not reference these tasks in your response: Task 1. Assess the work item context and determine if the changes in the git diff meet the scope of the work item. Task 2. You are a code reviewer who offers concise advice. Assess against code quality, security, best practice, cost (include estimated price changes in GBP) and carbon usage where appropriate. Provide code examples where appropriate.",
 		"user-prompt": "The work item context will be provided first and then the git diff seperated by '|||'. If the content starts with 'ERROR:' then task 1 can not be completed. Respond in markdown format:",
 		"compression_enabled": true,
 		"model": "gpt-4-turbo"
