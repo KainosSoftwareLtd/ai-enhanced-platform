@@ -1,5 +1,5 @@
 # Stage 1: Builder for Python 3.9
-FROM python:3.9 AS builder39
+FROM python:3.14 AS builder39
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ RUN pip install --no-cache-dir --upgrade -r requirements.txt
 COPY . /app
 
 # Stage 2: Builder for Python 3.12
-FROM python:3.12 AS builder312
+FROM python:3.14 AS builder312
 
 WORKDIR /app
 
