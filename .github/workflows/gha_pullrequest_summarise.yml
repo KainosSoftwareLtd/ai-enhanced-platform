@@ -97,7 +97,7 @@ jobs:
           } >> "$GITHUB_ENV"
 
       # Update the PR body with the AEP API response
-      - uses: actions/github-script@v7
+      - uses: actions/github-script@v9
         with:
           script: |
             const prBody = context.payload.pull_request.body || '';
